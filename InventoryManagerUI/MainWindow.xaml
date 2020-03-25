@@ -1,0 +1,362 @@
+﻿<dx:ThemedWindow x:Class="InventoryManagerUI.MainWindow"
+                 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                 xmlns:local="clr-namespace:InventoryManagerUI"
+                 xmlns:dxmvvm="http://schemas.devexpress.com/winfx/2008/xaml/mvvm"
+                 xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core"
+                 xmlns:dxg="http://schemas.devexpress.com/winfx/2008/xaml/grid"
+                 xmlns:dxr="http://schemas.devexpress.com/winfx/2008/xaml/ribbon"
+                 xmlns:dxb="http://schemas.devexpress.com/winfx/2008/xaml/bars"
+                 xmlns:dxlc="http://schemas.devexpress.com/winfx/2008/xaml/layoutcontrol"
+                 xmlns:views="clr-namespace:InventoryManagerUI.Views"
+                 xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors"
+                 mc:Ignorable="d"
+                 WindowState="Maximized"
+                 Title="Inventory Manager" Height="450" Width="800">
+
+    <dxmvvm:Interaction.Behaviors>
+        <dx:DXMessageBoxService/>
+        <dx:DialogService x:Name="AddOrModifyItemDialogService" DialogWindowStartupLocation="CenterOwner">
+            <dx:DialogService.ViewTemplate>
+                <DataTemplate>
+                    <views:AddOrModifyInventoryItem />
+                </DataTemplate>
+            </dx:DialogService.ViewTemplate>
+            <dx:DialogService.DialogStyle>
+                <Style TargetType="Window">
+                    <Setter Property="SizeToContent" Value="WidthAndHeight" />
+                    <Setter Property="WindowStyle" Value="ToolWindow" />
+                    <Setter Property="MinWidth" Value="400" />
+                    <Setter Property="MaxWidth" Value="1200" />
+                    <Setter Property="Width" Value="800" />
+                </Style>
+            </dx:DialogService.DialogStyle>
+        </dx:DialogService>
+        <dx:DialogService x:Name="FindItemDialogService" DialogWindowStartupLocation="CenterOwner">
+            <dx:DialogService.ViewTemplate>
+                <DataTemplate>
+                    <views:FindItemView />
+                </DataTemplate>
+            </dx:DialogService.ViewTemplate>
+            <dx:DialogService.DialogStyle>
+                <Style TargetType="Window">
+                    <Setter Property="SizeToContent" Value="WidthAndHeight" />
+                    <Setter Property="WindowStyle" Value="ToolWindow" />
+                    <Setter Property="MinWidth" Value="300" />
+                    <Setter Property="MaxWidth" Value="600" />
+                    <Setter Property="Width" Value="500" />
+                </Style>
+            </dx:DialogService.DialogStyle>
+        </dx:DialogService>
+    </dxmvvm:Interaction.Behaviors>
+
+    <DockPanel>
+        <dxr:RibbonControl RibbonStyle="Office2019" AllowSimplifiedRibbon="True" IsSimplified="True" DockPanel.Dock="Top">
+            <dxr:RibbonDefaultPageCategory>
+                <dxr:RibbonPage Caption="Home">
+                    <dxr:RibbonPageGroup Caption="Inventory" ShowCaptionButton="True">
+                        <dxb:BarButtonItem Content="Save"
+                                           Command="{Binding SaveCommand}"
+                                           KeyGesture="Ctrl+S"
+                                           Glyph="{dx:DXImage SvgImages/Outlook Inspired/Save.svg}"
+                                           LargeGlyph="{dx:DXImage SvgImages/Outlook Inspired/Save.svg}"
+                                           Description="Saves all modifications."
+                                           Hint="Saves all modifications."
+                                           RibbonStyle="Large" />
+                        <dxb:BarCheckItem x:Name="bBooks" Content="Book"
+                                          Glyph="{dx:DXImage SvgImages/XAF/OutlookNavigation_Reading.svg}"
+                                          LargeGlyph="{dx:DXImage SvgImages/XAF/OutlookNavigation_Reading.svg}"
+                                          IsChecked="True" CheckedChanged="OnInventoryCheckChanged" />
+                        <dxb:BarCheckItem x:Name="bMovies" Content="Movie"
+                                          Glyph="{dx:DXImage SvgImages/Icon Builder/Electronics_Video.svg}"
+                                          LargeGlyph="{dx:DXImage SvgImages/Icon Builder/Electronics_Video.svg}"
+                                          IsChecked="True" CheckedChanged="OnInventoryCheckChanged" />
+                        <dxb:BarCheckItem x:Name="bVideoGames" Content="Video Game"
+                                          Glyph="{dx:DXImage SvgImages/XAF/ModelEditor_Controllers.svg}"
+                                          LargeGlyph="{dx:DXImage SvgImages/XAF/ModelEditor_Controllers.svg}"
+                                          IsChecked="True" CheckedChanged="OnInventoryCheckChanged" />
+                    </dxr:RibbonPageGroup>
+                </dxr:RibbonPage>
+            </dxr:RibbonDefaultPageCategory>
+        </dxr:RibbonControl>
+
+        <Grid>
+            <dxlc:LayoutControl StretchContentVertically="True" Background="Transparent" StretchContentHorizontally="True">
+                <dxlc:LayoutGroup x:Name="groupContainer" Orientation="Vertical" View="Tabs" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" SelectedTabChildChanged="OnSelectedTabChildChanged">
+                    <dxlc:LayoutGroup Header="Books" IsCollapsible="True" Visibility="{Binding IsChecked, ElementName=bBooks, Converter={dx:BooleanToVisibilityConverter}}">
+                        <dxlc:LayoutGroup.HeaderTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <Image Source="{dx:DXImage SvgImages/XAF/OutlookNavigation_Reading.svg}" Height="18"/>
+                                    <TextBlock Text="{Binding}" Margin="5,0" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </dxlc:LayoutGroup.HeaderTemplate>
+                        <DockPanel>
+                            <dxb:ToolBarControl DockPanel.Dock="Top" AllowQuickCustomization="False" UseWholeRow="True" GlyphSize="Small">
+                                <dxb:BarButtonItem Content="Add"
+                                                   Command="{Binding AddItemCommand}"
+                                                   CommandParameter="{x:Static local:InventoryItemType.Book}"
+                                                   KeyGesture="Ctrl+N"
+                                                   Glyph="{dx:DXImage SvgImages/Outlook Inspired/New.svg}"
+                                                   LargeGlyph="{dx:DXImage SvgImages/Outlook Inspired/New.svg}"
+                                                   Description="Adds a new inventory item."
+                                                   Hint="Creates a new inventory."
+                                                   BarItemDisplayMode="ContentAndGlyph" />
+                                <dxb:BarItemSeparator />
+                                <dxb:BarButtonItem Content="Modify"
+                                                   Command="{Binding ModifyItemCommand}"
+                                                   CommandParameter="{Binding CurrentItem, ElementName=BookGrid}"
+                                                   KeyGesture="Ctrl+M"
+                                                   Glyph="{dx:DXImage SvgImages/RichEdit/PenColor.svg}"
+                                                   BarItemDisplayMode="ContentAndGlyph" />
+                                <dxb:BarItemSeparator />
+                                <dxb:BarButtonItem Content="Delete"
+                                                   Glyph="{dx:DXImage SvgImages/Outlook Inspired/Delete.svg}"
+                                                   LargeGlyph="{dx:DXImage SvgImages/Outlook Inspired/Delete.svg}"
+                                                   Description="Finds an inventory item."
+                                                   Hint="Creates a new inventory."
+                                                   KeyGesture="Del"
+                                                   BarItemDisplayMode="ContentAndGlyph">
+                                    <dxmvvm:Interaction.Behaviors>
+                                        <dxmvvm:ConfirmationBehavior
+                                                            Command="{Binding DeleteItemCommand}"
+                                                            CommandParameter="{Binding CurrentItem, ElementName=BookGrid}"
+                                                            MessageDefaultResult="No"
+                                                            MessageIcon="Exclamation" MessageTitle="Delete Selected"
+                                                            MessageText="{Binding CurrentItem.Title, ElementName=MovieGrid, StringFormat='Are you sure you want to delete: &quot;{0}&quot;?'}" />
+                                    </dxmvvm:Interaction.Behaviors>
+                                </dxb:BarButtonItem>
+                                <dxb:BarItemSeparator />
+                                <dxb:BarButtonItem Content="Find"
+                                                   Command="{Binding FindItemCommand}"
+                                                   CommandParameter="{x:Static local:InventoryItemType.Book}"
+                                                   Glyph="{dx:DXImage SvgImages/Find/Find.svg}"
+                                                   LargeGlyph="{dx:DXImage SvgImages/Find/Find.svg}"
+                                                   KeyGesture="Ctrl+F"
+                                                   Description="Finds an inventory item."
+                                                   Hint="Fins an inventory item."
+                                                   BarItemDisplayMode="ContentAndGlyph" />
+                            </dxb:ToolBarControl>
+                            <dxg:GridControl x:Name="BookGrid" ItemsSource="{Binding BookModels}" CurrentItem="{Binding FocusedItemModel, Mode=TwoWay}">
+                                <dxmvvm:Interaction.Behaviors>
+                                    <dxmvvm:EventToCommand EventName="MouseDoubleClick"
+                                                           Command="{Binding ModifyItemCommand}"
+                                                           CommandParameter="{Binding CurrentItem, RelativeSource={RelativeSource AncestorType={x:Type dxg:GridControl}}}" />
+                                </dxmvvm:Interaction.Behaviors>
+
+                                <dxg:GridControl.View>
+                                    <dxg:TableView ShowTotalSummary="True" 
+                                                   AllowFilterEditor="False"
+                                                   ShowGroupPanel="False" 
+                                                   AllowEditing="False" 
+                                                   ShowFixedTotalSummary="True"/>
+                                </dxg:GridControl.View>
+
+                                <dxg:GridControl.TotalSummary>
+                                    <dxg:GridSummaryItem SummaryType="Count" Alignment="Right"/>
+                                </dxg:GridControl.TotalSummary>
+                                <dxg:GridControl.Columns>
+                                    <dxg:GridColumn FieldName="Title" IsSmart="True"/>
+                                    <dxg:GridColumn FieldName="Genre" IsSmart="True"/>
+                                    <dxg:GridColumn FieldName="Cost" IsSmart="True">
+                                        <dxg:GridColumn.EditSettings>
+                                            <dxe:TextEditSettings MaskType="Numeric" MaskUseAsDisplayFormat="True" Mask="c"/>
+                                        </dxg:GridColumn.EditSettings>
+                                    </dxg:GridColumn>
+                                    <dxg:GridColumn FieldName="Platform" IsSmart="True"/>
+                                    <dxg:GridColumn FieldName="ReleaseYear" IsSmart="True"/>
+                                    <dxg:GridColumn FieldName="Author" IsSmart="True"/>
+                                    <dxg:GridColumn FieldName="Publisher" IsSmart="True"/>
+                                </dxg:GridControl.Columns>
+                            </dxg:GridControl>
+                        </DockPanel>
+                    </dxlc:LayoutGroup>
+                    <dxlc:LayoutGroup Header="Movies" View="Group" IsCollapsible="True" Visibility="{Binding IsChecked, ElementName=bMovies, Converter={dx:BooleanToVisibilityConverter}}">
+                        <dxlc:LayoutGroup.HeaderTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <Image Source="{dx:DXImage SvgImages/Icon Builder/Electronics_Video.svg}"
+                                           Height="18" />
+                                    <TextBlock Text="{Binding}" Margin="5,0" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </dxlc:LayoutGroup.HeaderTemplate>
+                        <DockPanel>
+                            <dxb:ToolBarControl DockPanel.Dock="Top" AllowQuickCustomization="False" UseWholeRow="True" GlyphSize="Small">
+                                <dxb:BarButtonItem Content="Add"
+                                                   Command="{Binding AddItemCommand}"
+                                                   CommandParameter="{x:Static local:InventoryItemType.Movie}"
+                                                   KeyGesture="Ctrl+N"
+                                                   Glyph="{dx:DXImage SvgImages/Outlook Inspired/New.svg}"
+                                                   LargeGlyph="{dx:DXImage SvgImages/Outlook Inspired/New.svg}"
+                                                   Description="Adds a new inventory item."
+                                                   Hint="Creates a new inventory."
+                                                   BarItemDisplayMode="ContentAndGlyph" />
+                                <dxb:BarItemSeparator/>
+                                <dxb:BarButtonItem Content="Modify"
+                                                   Command="{Binding ModifyItemCommand}"
+                                                   CommandParameter="{Binding CurrentItem, ElementName=MovieGrid}"
+                                                   KeyGesture="Ctrl+M"
+                                                   Glyph="{dx:DXImage SvgImages/RichEdit/PenColor.svg}"
+                                                   BarItemDisplayMode="ContentAndGlyph" />
+                                <dxb:BarItemSeparator />
+                                <dxb:BarButtonItem Content="Delete"
+                                                   Glyph="{dx:DXImage SvgImages/Outlook Inspired/Delete.svg}"
+                                                   LargeGlyph="{dx:DXImage SvgImages/Outlook Inspired/Delete.svg}"
+                                                   Description="Finds an inventory item."
+                                                   Hint="Creates a new inventory."
+                                                   KeyGesture="Del"
+                                                   BarItemDisplayMode="ContentAndGlyph">
+                                    <dxmvvm:Interaction.Behaviors>
+                                        <dxmvvm:ConfirmationBehavior
+                                                            Command="{Binding DeleteItemCommand}"
+                                                            CommandParameter="{Binding CurrentItem, ElementName=MovieGrid}"
+                                                            MessageDefaultResult="No"
+                                                            MessageIcon="Exclamation" MessageTitle="Delete Selected"
+                                                            MessageText="{Binding CurrentItem.Title, ElementName=MovieGrid, StringFormat='Are you sure you want to delete: &quot;{0}&quot;?'}" />
+                                    </dxmvvm:Interaction.Behaviors>
+                                </dxb:BarButtonItem>
+                                <dxb:BarItemSeparator />
+                                <dxb:BarButtonItem Content="Find"
+                                                   Command="{Binding FindItemCommand}"
+                                                   CommandParameter="{x:Static local:InventoryItemType.Movie}"
+                                                   Glyph="{dx:DXImage SvgImages/Find/Find.svg}"
+                                                   LargeGlyph="{dx:DXImage SvgImages/Find/Find.svg}"
+                                                   KeyGesture="Ctrl+F"
+                                                   Description="Finds an inventory item."
+                                                   Hint="Fins an inventory item."
+                                                   BarItemDisplayMode="ContentAndGlyph" />
+                            </dxb:ToolBarControl>
+                            <dxg:GridControl x:Name="MovieGrid"  ItemsSource="{Binding MovieModels}"
+                                             CurrentItem="{Binding FocusedItemModel, Mode=TwoWay}">
+                                <dxmvvm:Interaction.Behaviors>
+                                    <dxmvvm:EventToCommand EventName="MouseDoubleClick"
+                                                           Command="{Binding ModifyItemCommand}"
+                                                           CommandParameter="{Binding CurrentItem, RelativeSource={RelativeSource AncestorType={x:Type dxg:GridControl}}}" />
+                                </dxmvvm:Interaction.Behaviors>
+                                <dxg:GridControl.View>
+                                    <dxg:TableView ShowTotalSummary="True" 
+                                                   AllowFilterEditor="False"
+                                                   ShowGroupPanel="False" 
+                                                   AllowEditing="False" 
+                                                   ShowFixedTotalSummary="True"/>
+                                </dxg:GridControl.View>
+
+                                <dxg:GridControl.TotalSummary>
+                                    <dxg:GridSummaryItem SummaryType="Count" Alignment="Right"/>
+                                </dxg:GridControl.TotalSummary>
+                                
+                                <dxg:GridControl.Columns>
+                                    <dxg:GridColumn FieldName="Title" IsSmart="True"/>
+                                    <dxg:GridColumn FieldName="Genre" IsSmart="True"/>
+                                    <dxg:GridColumn FieldName="Cost" IsSmart="True">
+                                        <dxg:GridColumn.EditSettings>
+                                            <dxe:TextEditSettings MaskType="Numeric" MaskUseAsDisplayFormat="True" Mask="c"/>
+                                        </dxg:GridColumn.EditSettings>
+                                    </dxg:GridColumn>
+                                    <dxg:GridColumn FieldName="Platform" IsSmart="True"/>
+                                    <dxg:GridColumn FieldName="ReleaseYear" IsSmart="True"/>
+                                    <dxg:GridColumn FieldName="Director" IsSmart="True"/>
+                                    <dxg:GridColumn FieldName="Duration" IsSmart="True"/>
+                                </dxg:GridControl.Columns>
+                            </dxg:GridControl>
+                        </DockPanel>
+                    </dxlc:LayoutGroup>
+                    <dxlc:LayoutGroup Header="Video Games" IsCollapsible="True" Visibility="{Binding IsChecked, ElementName=bVideoGames, Converter={dx:BooleanToVisibilityConverter}}">
+                        <dxlc:LayoutGroup.HeaderTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <Image Source="{dx:DXImage SvgImages/XAF/ModelEditor_Controllers.svg}" Height="18" />
+                                    <TextBlock Text="{Binding}" Margin="5,0" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </dxlc:LayoutGroup.HeaderTemplate>
+                        <DockPanel>
+                            <dxb:ToolBarControl DockPanel.Dock="Top" AllowQuickCustomization="False" UseWholeRow="True" GlyphSize="Small">
+                                <dxb:BarButtonItem Content="Add"
+                                                   Command="{Binding AddItemCommand}"
+                                                   CommandParameter="{x:Static local:InventoryItemType.VideoGame}"
+                                                   KeyGesture="Ctrl+N"
+                                                   Glyph="{dx:DXImage SvgImages/Outlook Inspired/New.svg}"
+                                                   LargeGlyph="{dx:DXImage SvgImages/Outlook Inspired/New.svg}"
+                                                   Description="Adds a new inventory item."
+                                                   Hint="Creates a new inventory."
+                                                   BarItemDisplayMode="ContentAndGlyph" />
+                                <dxb:BarItemSeparator />
+                                <dxb:BarButtonItem Content="Modify"
+                                                   Command="{Binding ModifyItemCommand}"
+                                                   CommandParameter="{Binding CurrentItem, ElementName=VideoGameGrid}"
+                                                   KeyGesture="Ctrl+M"
+                                                   Glyph="{dx:DXImage SvgImages/RichEdit/PenColor.svg}"
+                                                   BarItemDisplayMode="ContentAndGlyph" />
+                                <dxb:BarItemSeparator />
+                                <dxb:BarButtonItem Content="Delete"
+                                                   Glyph="{dx:DXImage SvgImages/Outlook Inspired/Delete.svg}"
+                                                   LargeGlyph="{dx:DXImage SvgImages/Outlook Inspired/Delete.svg}"
+                                                   Description="Finds an inventory item."
+                                                   Hint="Creates a new inventory."
+                                                   KeyGesture="Del"
+                                                   BarItemDisplayMode="ContentAndGlyph">
+                                    <dxmvvm:Interaction.Behaviors>
+                                        <dxmvvm:ConfirmationBehavior
+                                                            Command="{Binding DeleteItemCommand}"
+                                                            CommandParameter="{Binding CurrentItem, ElementName=VideoGameGrid}"
+                                                            MessageDefaultResult="No"
+                                                            MessageIcon="Exclamation" MessageTitle="Delete Selected"
+                                                            MessageText="{Binding CurrentItem.Title, ElementName=MovieGrid, StringFormat='Are you sure you want to delete: &quot;{0}&quot;?'}" />
+                                    </dxmvvm:Interaction.Behaviors>
+                                </dxb:BarButtonItem>
+                                <dxb:BarItemSeparator/>
+                                <dxb:BarButtonItem Content="Find"
+                                                   Command="{Binding FindItemCommand}"
+                                                   CommandParameter="{x:Static local:InventoryItemType.VideoGame}"
+                                                   Glyph="{dx:DXImage SvgImages/Find/Find.svg}"
+                                                   LargeGlyph="{dx:DXImage SvgImages/Find/Find.svg}"
+                                                   KeyGesture="Ctrl+F"
+                                                   Description="Finds an inventory item."
+                                                   Hint="Fins an inventory item."
+                                                   BarItemDisplayMode="ContentAndGlyph" />
+                            </dxb:ToolBarControl>
+                            <dxg:GridControl x:Name="VideoGameGrid" ItemsSource="{Binding VideoGameModels}" CurrentItem="{Binding FocusedItemModel, Mode=TwoWay}">
+                                <dxmvvm:Interaction.Behaviors>
+                                    <dxmvvm:EventToCommand EventName="MouseDoubleClick"
+                                                           Command="{Binding ModifyItemCommand}"
+                                                           CommandParameter="{Binding CurrentItem, RelativeSource={RelativeSource AncestorType={x:Type dxg:GridControl}}}" />
+                                </dxmvvm:Interaction.Behaviors>
+                                <dxg:GridControl.View>
+                                    <dxg:TableView ShowTotalSummary="True" 
+                                                   AllowFilterEditor="False"
+                                                   ShowGroupPanel="False" 
+                                                   AllowEditing="False" 
+                                                   ShowFixedTotalSummary="True"/>
+                                </dxg:GridControl.View>
+
+                                <dxg:GridControl.TotalSummary>
+                                    <dxg:GridSummaryItem SummaryType="Count" Alignment="Right"/>
+                                </dxg:GridControl.TotalSummary>
+
+                                <dxg:GridControl.Columns>
+                                    <dxg:GridColumn FieldName="Title" IsSmart="True"/>
+                                    <dxg:GridColumn FieldName="Genre" IsSmart="True"/>
+                                    <dxg:GridColumn FieldName="Cost" IsSmart="True">
+                                        <dxg:GridColumn.EditSettings>
+                                            <dxe:TextEditSettings MaskType="Numeric" MaskUseAsDisplayFormat="True" Mask="c"/>
+                                        </dxg:GridColumn.EditSettings>
+                                    </dxg:GridColumn>
+                                    <dxg:GridColumn FieldName="Platform" IsSmart="True"/>
+                                    <dxg:GridColumn FieldName="ReleaseYear" IsSmart="True"/>
+                                    <dxg:GridColumn FieldName="Developer" IsSmart="True"/>
+                                    <dxg:GridColumn FieldName="Rating" IsSmart="True"/>
+                                </dxg:GridControl.Columns>
+                            </dxg:GridControl>
+                        </DockPanel>
+                    </dxlc:LayoutGroup>
+                </dxlc:LayoutGroup>
+            </dxlc:LayoutControl>
+            <dx:WaitIndicator DeferedVisibility="{Binding IsLoading}" Content="Busy, please wait..." HorizontalAlignment="Center" VerticalAlignment="Center" ShowShadow="False" />
+        </Grid>
+    </DockPanel>
+</dx:ThemedWindow>
